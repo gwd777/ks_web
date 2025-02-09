@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数据可视化demo</title>
+    <link href="/static/styles/common.css" rel="stylesheet">
+    <script src="/static/scripts/Plugin/jquery-3.3.1.min.js"></script>
+    <script src="/static/scripts/Plugin/echarts.min.js"></script>
+    <script src="/static/scripts/Plugin/echarts-gl.min.js"></script>
+    <script src="/static/scripts/Plugin/bmap.min.js"></script>
+    <script src="/static/scripts/common.js"></script>
+    <script src="/static/scripts/index.js"></script>
+    <script src="/static/scripts/Plugin/laydate/laydate.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/collections@6.1.0/collections.min.js"></script>
+
+    <style>
+        /* 设置表格宽度为 100% 并且字体颜色为白色 */
+        #sdict-table {
+            width: 100%; /* 设置表格宽度为100% */
+            border-collapse: collapse; /* 去除表格边框之间的空隙 */
+            color: white; /* 设置字体颜色为白色 */
+            background-color: #333; /* 设置表格背景颜色为深色，增加对比度 */
+        }
+
+        /* 设置表格头部样式 */
+        #sdict-table th {
+            background-color: #555; /* 表头背景色 */
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* 设置表格内容单元格样式 */
+        #sdict-table td {
+            padding: 8px;
+            border: 1px solid #444; /* 边框颜色 */
+            text-align: center;
+        }
+
+        /* 设置表格行鼠标悬停样式 */
+        #sdict-table tr:hover {
+            background-color: #444; /* 悬停行背景色 */
+        }
+    </style>
+
+    <style>
+        /* 设置表格宽度为 100% 并且字体颜色为白色 */
+        #dx-sdict-table {
+            width: 100%; /* 设置表格宽度为100% */
+            border-collapse: collapse; /* 去除表格边框之间的空隙 */
+            color: white; /* 设置字体颜色为白色 */
+            background-color: #333; /* 设置表格背景颜色为深色，增加对比度 */
+        }
+
+        /* 设置表格头部样式 */
+        #dx-sdict-table th {
+            background-color: #555; /* 表头背景色 */
+            padding: 10px;
+            margin: 5px;
+            text-align: center;
+        }
+
+        /* 设置表格内容单元格样式 */
+        #dx-sdict-table td {
+            padding: 8px;
+            border: 1px solid #444; /* 边框颜色 */
+            text-align: center;
+        }
+
+        /* 设置表格行鼠标悬停样式 */
+        #dx-sdict-table tr:hover {
+            background-color: #444; /* 悬停行背景色 */
+        }
+    </style>
+</head>
+
+<body>
+
+<!--顶部-->
+<header class="header left">
+    <div class="header_center" style="position:relative">
+        <h2><strong>智慧矿山检测系统</strong></h2>
+    </div>
+    <div class="right nav text_right">
+        <ul></ul>
+    </div>
+</header>
+
+<!--内容部分-->
+<div class="con left">
+
+<!--数据总概-->
+<div class="con_div">
+      <div class="con_div_text left">
+          <div class="con_div_text01 left">
+              <img src="/static/images/info_7.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>当前矿石最大粒径(mm)</p>
+                  <p id="maxValue">0</p>
+              </div>
+          </div>
+          <div class="con_div_text01 right">
+              <img src="/static/images/info_8.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>当前矿石最小粒径(mm)</p>
+                  <p id="minValue">0</p>
+              </div>
+          </div>
+      </div>
+      <div class="con_div_text left">
+          <div class="con_div_text01 left">
+              <img src="/static/images/info_9.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>当前过滤总数(个)</p>
+                  <p id="stoneCount">0</p>
+              </div>
+          </div>
+          <div class="con_div_text01 right">
+              <img src="/static/images/info_10.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>采样间隔</p>
+                  <p class="sky">4</p>
+              </div>
+          </div>
+      </div>
+      <div class="con_div_text left">
+          <div class="con_div_text01 left">
+              <img src="/static/images/info_11.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>最大耗电值</p>
+                  <p id="maxw">0</p>
+              </div>
+          </div>
+          <div class="con_div_text01 right">
+              <img src="/static/images/info_12.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>最小耗电值</p>
+                  <p id="minw">0</p>
+              </div>
+          </div>
+      </div>
+</div>
+
+<div class="div_any">
+    <div class="left div_any01">
+        <div class="div_any_child" style="padding-top:40px">
+            <div class="div_any_title"><img src="/static/images/title_12.png">矿石粒径数量【表格】</div>
+            <table id="sdict-table" border="1">
+                <thead><tr><th>范围</th><th>数量</th></tr></thead>
+                <tbody><!-- 动态生成的表格行将插入在这里 --></tbody>
+            </table>
+        </div>
+        <div class="div_any_child">
+            <div class="div_any_title"><img src="/static/images/title_12.png">矿石粒径数量分布</div>
+            <p id="pieChart2" class="p_chart"></p>
+        </div>
+    </div>
+
+    <div class="left div_any02">
+        <div class="div_any_child01_wh">
+            <img src="{{ url_for('video_feed') }}" style="width:100%; height:110%; padding-top:90px;">
+        </div>
+    </div>
+
+    <div class="left div_any01">
+        <div class="div_any_child" style="padding-top:40px">
+            <div class="div_any_title"><img src="/static/images/title_12.png">矿石Dx粒径【表格】</div>
+            <table id="dx-sdict-table" border="1">
+                <thead><tr><th>Dx范围</th><th>Dx粒径(mm)</th></tr></thead>
+                <tbody><!-- 动态生成的表格行将插入在这里 --></tbody>
+            </table>
+        </div>
+
+        <div class="div_any_child">
+            <p id="lineChart2" class="p_chart"></p>
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript">
+    var newData = [];           // 定义全局数组
+    var newCategories = [];     // 定义全局数组
+    var newCount = 0;
+    function updateDxSdict() {
+        $.getJSON("/dx_sdict", function(data) {
+            console.log(data);
+            // 清空现有的表格数据
+            $('#dx-sdict-table tbody').empty();
+
+            // 遍历 JSON 数据并将其填充到表格中
+            for (var key in data) {
+                if (data.hasOwnProperty(key))
+                {
+                    var value = data[key];
+                    // 创建一行 <tr> 和两列 <td>
+                    var row = $('<tr></tr>');
+                    row.append('<td>' + key + '</td>');
+                    row.append('<td>' + JSON.stringify(value) + '</td>');  // 将值转换为字符串以便展示
+                    $('#dx-sdict-table tbody').append(row);  // 将行添加到表格的 <tbody>
+                }
+            }
+
+            // 调用更新函数
+            updateLineChart2(data);
+        });
+    }
+
+    setInterval(updateDxSdict, 5000);
+
+    // 动态更新图表数据
+    function updateLineChart2(data) {
+        x1 = data['D5']
+        x2 = data['D20']
+        x3 = data['D50']
+        x4 = data['Xc']
+        x5 = data['D75']
+        x6 = data['D80']
+        x7 = data['D90']
+        W = 0.012 * x1 + 0.0003 * x2 - 0.0049 * x3 - 0.0004 * x4 + 0.0074 * x5 - 0.0074 * x6 + 0.0096 * x7 + 34.4247;
+
+        newCount++;
+        newData.push(W);
+        newCategories.push(newCount);
+
+        // 更新 <p> 标签的内容
+        var maxVal = Math.max(...newData);
+        var xValueElement = document.getElementById('maxw');
+        xValueElement.textContent = maxVal.toFixed(2);
+
+        var minVal = Math.min(...newData);
+        var minValueElement = document.getElementById('minw');
+        minValueElement.textContent = minVal.toFixed(2);
+
+        if(newData.length > 15){
+            newData = newData.slice(1);
+            newCategories = newCategories.slice(1);
+        }
+
+        lineChart2.setOption({
+            xAxis: {
+                data: newCategories // 更新 X 轴类别数据
+            },
+            series: [
+                {
+                    type: 'line',
+                    smooth: true,
+                    itemStyle: { normal: { areaStyle: { type: 'default' } } },
+                    data: newData // 更新系列数据
+                }
+            ]
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    // 定时获取sdict字典并更新页面内容
+    function updateSdict() {
+        $.getJSON("/sdict", function(data) {
+            // console.log(data);
+            // 清空现有的表格数据
+            $('#sdict-table tbody').empty();
+
+            var pieData = [];
+            var maxValue = 0;
+            var minValue = 0;
+            var totalCount = 0;
+
+            // 遍历 JSON 数据并将其填充到表格中
+            for (var key in data) {
+                if (data.hasOwnProperty(key))
+                {
+                    if(key == 'max'){
+                        maxValue = data[key];
+                        var maxValueElement = document.getElementById('maxValue');
+                        var formattedValue = maxValue.toFixed(2);           // 使用 toFixed() 方法裁剪数字到两位小数
+                        maxValueElement.textContent = formattedValue;       // 更新 <p> 标签的内容
+                        continue;
+                    }else if(key == 'min'){
+                        minValue = data[key];
+                        var minValueElement = document.getElementById('minValue');
+                        var formattedValue = minValue.toFixed(2);           // 使用 toFixed() 方法裁剪数字到两位小数
+                        minValueElement.textContent = formattedValue;       // 更新 <p> 标签的内容
+                        continue;
+                    }
+
+                    var value = data[key];
+                    totalCount = totalCount + value;
+
+                    // 创建一行 <tr> 和两列 <td>
+                    var row = $('<tr></tr>');
+                    row.append('<td>' + key + '</td>');
+                    row.append('<td>' + JSON.stringify(value) + '</td>');  // 将值转换为字符串以便展示
+                    $('#sdict-table tbody').append(row);  // 将行添加到表格的 <tbody>
+
+                    pieData.push({value: value, name: key});
+                }
+            }
+
+            var minValueElement = document.getElementById('stoneCount');
+            minValueElement.textContent = totalCount;       // 更新 <p> 标签的内容
+
+            // 更新饼状图数据
+            updatePieChart(pieData);
+        });
+    }
+
+    // 每隔1秒钟更新一次sdict
+    setInterval(updateSdict, 1000);
+
+    // 更新饼状图的函数
+    function updatePieChart(pieData) {
+        pieChart2.setOption({
+            series: [{
+                  name:'矿石粒径分布',
+                  type:'pie',
+                  radius : [30, 110],
+                  center : ['45%', '50%'],
+                  roseType : 'area',
+                  x: '50%',
+                  max: 40,
+                  sort : 'ascending',
+                  data: pieData
+            }]
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    var pieChart2 = echarts.init(document.getElementById('pieChart2'));
+    pieChart2.setOption({
+      color:["#87cefa","#ff7f50","#32cd32","#da70d6",],
+      tooltip : {
+            trigger: 'item',
+            formatter: "{a}<br/>{b}<br/>{c}个"
+      },
+      calculable : true,
+      series : [
+          {
+              name:'矿石粒径分布',
+              type:'pie',
+              radius : [30, 110],
+              center : ['45%', '50%'],
+              roseType : 'area',
+              x: '50%',
+              max: 40,
+              sort : 'ascending',
+              data:[
+                  {value:700, name:'x'},
+                  {value:500, name:'x2'},
+                  {value:105, name:'x3'},
+                  {value:250, name:'x4'},
+              ]
+          }
+      ]
+    })
+</script>
+
+<script type="text/javascript">
+    //体检人次
+    var lineChart2 = echarts.init(document.getElementById('lineChart2'));
+    lineChart2.setOption({
+        title: {
+            text: '能耗分析', // 主标题文本
+            left: 'center', // 标题位置
+            textStyle: {
+                color: '#fff' // 标题文字颜色
+            },
+            subtextStyle: {
+                color: '#aaa' // 副标题文字颜色
+            }
+        },
+        color:["#87cefa","#ff7f50","#32cd32","#da70d6",],
+        tooltip : {
+            trigger: 'item',
+            formatter: "{a}<br/>{b}<br/>{c} kWh/t"
+        },
+        legend: {
+            y: 'bottom',
+            x:'center',
+            textStyle:{
+                color:'#fff',
+                fontSize:12
+            }
+        },
+        grid:{
+            top: '10%',
+            left: '1%',
+            right: '1%',
+            bottom: '3%',
+            containLabel: true
+        },
+        calculable : true,
+        xAxis : [
+            {
+                type : 'category',
+                boundaryGap : false,
+                data : [], // 这里填入X轴的数据
+                axisLine:{
+                    lineStyle:{
+                        color: '#87cefa'
+                    },
+                },
+                axisLabel : {
+                    name: '时间', // 设置X轴名称
+                    nameLocation: 'end', // 设置名称显示位置
+                    nameGap: 20, // 设置名称与轴线之间的距离
+                    interval:0,
+                    rotate:40,
+                    textStyle: {
+                        color: '#fff',
+                        fontSize:13
+                    }
+                }
+            }
+        ],
+        yAxis : [
+            {
+                type : 'value',
+                axisLine:{
+                    lineStyle:{
+                        color: '#87cefa'
+                    },
+                },
+                splitLine: {
+                    "show": false  // 显示分割线
+                },
+                axisLabel: {
+                    name: '能耗', // 设置Y轴名称
+                    nameLocation: 'end', // 设置名称显示位置
+                    nameGap: 20, // 设置名称与轴线之间的距离
+                    textStyle: {
+                        color: '#fff'
+                    },
+                    formatter: function (value) {
+                        return value.toFixed(2) + "   kWh/t"; // 自定义标签格式
+                    },
+                },
+                min: 39, // 设置y轴最小值
+                max: 43, // 设置y轴最大值
+                interval: 0.5 // 设置y轴刻度间隔
+            }
+        ],
+        series : [
+            {
+                name: '采样批次',
+                type:'line',
+                smooth:true,
+                itemStyle: {normal: {areaStyle: {type: 'default'}}},
+                data:[] // 这里填入系列数据
+            }
+        ]
+    });
+</script>
+
+</body>
+</html>

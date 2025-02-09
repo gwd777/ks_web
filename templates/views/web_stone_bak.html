@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数据可视化demo</title>
+    <link href="/static/styles/common.css" rel="stylesheet">
+    <script src="/static/scripts/Plugin/jquery-3.3.1.min.js"></script>
+    <script src="/static/scripts/Plugin/echarts.min.js"></script>
+    <script src="/static/scripts/Plugin/echarts-gl.min.js"></script>
+    <script src="/static/scripts/Plugin/bmap.min.js"></script>
+    <script src="/static/scripts/common.js"></script>
+    <script src="/static/scripts/index.js"></script>
+    <script src="/static/scripts/Plugin/laydate/laydate.js"></script>
+
+    <style>
+        /* 设置表格宽度为 100% 并且字体颜色为白色 */
+        #sdict-table {
+            width: 100%; /* 设置表格宽度为100% */
+            border-collapse: collapse; /* 去除表格边框之间的空隙 */
+            color: white; /* 设置字体颜色为白色 */
+            background-color: #333; /* 设置表格背景颜色为深色，增加对比度 */
+        }
+
+        /* 设置表格头部样式 */
+        #sdict-table th {
+            background-color: #555; /* 表头背景色 */
+            padding: 10px;
+            text-align: left;
+        }
+
+        /* 设置表格内容单元格样式 */
+        #sdict-table td {
+            padding: 8px;
+            border: 1px solid #444; /* 边框颜色 */
+        }
+
+        /* 设置表格行鼠标悬停样式 */
+        #sdict-table tr:hover {
+            background-color: #444; /* 悬停行背景色 */
+        }
+    </style>
+</head>
+
+<body>
+
+<!--顶部-->
+<header class="header left">
+    <div class="header_center" style="position:relative">
+        <h2><strong>智慧矿山检测系统</strong></h2>
+    </div>
+    <div class="right nav text_right">
+        <ul></ul>
+    </div>
+</header>
+
+<!--内容部分-->
+<div class="con left">
+
+<!--数据总概-->
+<div class="con_div">
+      <div class="con_div_text left">
+          <div class="con_div_text01 left">
+              <img src="/static/images/info_7.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>当前矿石最大粒径(mm)</p>
+                  <p id="maxValue">0</p>
+              </div>
+          </div>
+          <div class="con_div_text01 right">
+              <img src="/static/images/info_8.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>当前矿石最小粒径(mm)</p>
+                  <p id="minValue">0</p>
+              </div>
+          </div>
+      </div>
+      <div class="con_div_text left">
+          <div class="con_div_text01 left">
+              <img src="/static/images/info_9.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>当前过滤总数(个)</p>
+                  <p id="stoneCount">0</p>
+              </div>
+          </div>
+          <div class="con_div_text01 right">
+              <img src="/static/images/info_10.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>XXXX</p>
+                  <p class="sky">0</p>
+              </div>
+          </div>
+      </div>
+      <div class="con_div_text left">
+          <div class="con_div_text01 left">
+              <img src="/static/images/info_11.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>xxxx</p>
+                  <p class="org">0</p>
+              </div>
+          </div>
+          <div class="con_div_text01 right">
+              <img src="/static/images/info_12.png" class="left text01_img"/>
+              <div class="left text01_div">
+                  <p>xxxx</p>
+                  <p class="org">0</p>
+              </div>
+          </div>
+      </div>
+</div>
+
+<div class="div_any">
+    <div class="left div_any01">
+        <div class="div_any_child" style="padding-top:29px">
+            <div class="div_any_title"><img src="/static/images/title_12.png">矿石粒径数量【表格】</div>
+            <table id="sdict-table" border="1">
+                <thead><tr><th>范围</th><th>数量</th></tr></thead>
+                <tbody><!-- 动态生成的表格行将插入在这里 --></tbody>
+            </table>
+        </div>
+        <div class="div_any_child">
+            <div class="div_any_title"><img src="/static/images/title_12.png">矿石粒径数量分布</div>
+            <p id="pieChart2" class="p_chart"></p>
+        </div>
+    </div>
+
+    <div class="left div_any02">
+        <div class="div_any_child01_wh">
+            <img src="{{ url_for('video_feed') }}" style="width:100%; height:100%; padding:1px; background-color:black;">
+        </div>
+    </div>
+
+    <div class="left div_any01">
+        <div class="div_any_child">
+            <div class="div_any_title"><img src="/static/images/title_12.png">矿石粒径分布(个)</div>
+            <p id="lineChart2" class="p_chart"></p>
+        </div>
+        <div class="div_any_child">
+            <div class="div_any_title"><img src="/static/images/title_10.png">平均住院天数(天)</div>
+            <p id="histogramChart4" class="p_chart"></p>
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript">
+    function updateSdict() {
+        $.getJSON("/dx_sdict", function(data) {
+            // console.log(data);
+            // 清空现有的表格数据
+            $('#sdict-table tbody').empty();
+
+            var pieData = [];
+            var maxValue = 0;
+            var minValue = 0;
+            var totalCount = 0;
+
+            // 遍历 JSON 数据并将其填充到表格中
+            for (var key in data) {
+                if (data.hasOwnProperty(key))
+                {
+                    var value = data[key];
+                    // 创建一行 <tr> 和两列 <td>
+                    var row = $('<tr></tr>');
+                    row.append('<td>' + key + '</td>');
+                    row.append('<td>' + JSON.stringify(value) + '</td>');  // 将值转换为字符串以便展示
+                    $('#sdict-table tbody').append(row);  // 将行添加到表格的 <tbody>
+
+                    pieData.push({value: value, name: key});
+                }
+            }
+            var minValueElement = document.getElementById('stoneCount');
+            minValueElement.textContent = totalCount;       // 更新 <p> 标签的内容
+
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    // 定时获取sdict字典并更新页面内容
+    function updateSdict() {
+        $.getJSON("/sdict", function(data) {
+            // console.log(data);
+            // 清空现有的表格数据
+            $('#sdict-table tbody').empty();
+
+            var pieData = [];
+            var maxValue = 0;
+            var minValue = 0;
+            var totalCount = 0;
+
+            // 遍历 JSON 数据并将其填充到表格中
+            for (var key in data) {
+                if (data.hasOwnProperty(key))
+                {
+                    if(key == 'max'){
+                        maxValue = data[key];
+                        var maxValueElement = document.getElementById('maxValue');
+                        var formattedValue = maxValue.toFixed(2);           // 使用 toFixed() 方法裁剪数字到两位小数
+                        maxValueElement.textContent = formattedValue;       // 更新 <p> 标签的内容
+                        continue;
+                    }else if(key == 'min'){
+                        minValue = data[key];
+                        var minValueElement = document.getElementById('minValue');
+                        var formattedValue = minValue.toFixed(2);           // 使用 toFixed() 方法裁剪数字到两位小数
+                        minValueElement.textContent = formattedValue;       // 更新 <p> 标签的内容
+                        continue;
+                    }
+
+                    var value = data[key];
+                    totalCount = totalCount + value;
+
+                    // 创建一行 <tr> 和两列 <td>
+                    var row = $('<tr></tr>');
+                    row.append('<td>' + key + '</td>');
+                    row.append('<td>' + JSON.stringify(value) + '</td>');  // 将值转换为字符串以便展示
+                    $('#sdict-table tbody').append(row);  // 将行添加到表格的 <tbody>
+
+                    pieData.push({value: value, name: key});
+                }
+            }
+
+            var minValueElement = document.getElementById('stoneCount');
+            minValueElement.textContent = totalCount;       // 更新 <p> 标签的内容
+
+            // 更新饼状图数据
+            updatePieChart(pieData);
+        });
+    }
+
+    // 每隔1秒钟更新一次sdict
+    setInterval(updateSdict, 1000);
+
+    // 更新饼状图的函数
+    function updatePieChart(pieData) {
+        pieChart2.setOption({
+            series: [{
+                  name:'矿石粒径分布',
+                  type:'pie',
+                  radius : [30, 110],
+                  center : ['45%', '50%'],
+                  roseType : 'area',
+                  x: '50%',
+                  max: 40,
+                  sort : 'ascending',
+                  data: pieData
+            }]
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    var pieChart2 = echarts.init(document.getElementById('pieChart2'));
+    pieChart2.setOption({
+      color:["#87cefa","#ff7f50","#32cd32","#da70d6",],
+      tooltip : {
+            trigger: 'item',
+            formatter: "{a}<br/>{b}<br/>{c}个"
+      },
+      calculable : true,
+      series : [
+          {
+              name:'矿石粒径分布',
+              type:'pie',
+              radius : [30, 110],
+              center : ['45%', '50%'],
+              roseType : 'area',
+              x: '50%',
+              max: 40,
+              sort : 'ascending',
+              data:[
+                  {value:700, name:'x'},
+                  {value:500, name:'x2'},
+                  {value:105, name:'x3'},
+                  {value:250, name:'x4'},
+              ]
+          }
+      ]
+    })
+</script>
+
+<script type="text/javascript">
+    var histogramChart4 = echarts.init(document.getElementById('histogramChart4'));
+    histogramChart4.setOption( {
+      color:['#87cefa'],
+      grid:{
+          left: '5%',
+          right: '5%',
+          bottom: '5%',
+          containLabel: true
+      },
+      tooltip : {
+         trigger: 'item',
+         formatter: "{a}<br/>{b}<br/>{c}天"
+     },
+      calculable : true,
+      xAxis : [
+          {
+              type : 'category',
+              data : ['厦门第一医院','厦门中山医院','厦门中医院','厦门第五医院',],
+              axisLine:{
+                   lineStyle:{
+                       color: '#87cefa'
+                   },
+               },
+               axisLabel : {
+                 interval:0,
+                 rotate:40,
+
+                   textStyle: {
+                       color: '#fff',
+                       fontSize:13
+                   }
+               }
+          }
+      ],
+      yAxis : [
+          {
+              type : 'value',
+              axisLine:{
+                  lineStyle:{
+                      color: '#87cefa'
+                  },
+              },
+              splitLine: {
+                  "show": false
+              },
+              axisLabel: {
+                  textStyle: {
+                      color: '#fff'
+                  },
+                  formatter: function (value) {
+                      return value + "天"
+                  },
+              },
+          }
+      ],
+      series : [
+          {
+              name:'平均住院天数',
+              type:'bar',
+              barWidth:30,
+              data:[6,8,7,5],
+          },
+      ]
+    });
+</script>
+
+<script type="text/javascript">
+    //体检人次
+    var lineChart2 = echarts.init(document.getElementById('lineChart2'));
+    lineChart2.setOption( {
+      color:["#87cefa","#ff7f50","#32cd32","#da70d6",],
+      tooltip : {
+           trigger: 'item',
+           formatter: "{a}<br/>{b}<br/>{c}人"
+       },
+       legend: {
+        data:['厦门第一医院','厦门中山医院','厦门中医院','厦门第五医院',],
+        y: 'bottom',
+        x:'center',
+        textStyle:{
+            color:'#fff',
+            fontSize:12
+        }
+      },
+      grid:{
+        left: '5%',
+        right: '5%',
+        bottom: '10%',
+        containLabel: true
+      },
+      calculable : true,
+      xAxis : [
+          {
+              type : 'category',
+              boundaryGap : false,
+              data : ['周一','周二','周三','周四','周五','周六','周日'],
+              axisLine:{
+                   lineStyle:{
+                       color: '#87cefa'
+                   },
+               },
+               axisLabel : {
+                 interval:0,
+                 rotate:40,
+
+                   textStyle: {
+                       color: '#fff',
+                       fontSize:13
+                   }
+               }
+          }
+      ],
+      yAxis : [
+          {
+              type : 'value',
+              axisLine:{
+                  lineStyle:{
+                      color: '#87cefa'
+                  },
+              },
+              splitLine: {
+                  "show": false
+              },
+              axisLabel: {
+                  textStyle: {
+                      color: '#fff'
+                  },
+                  formatter: function (value) {
+                      return value + "人"
+                  },
+              },
+          }
+      ],
+      series : [
+          {
+              name:'厦门第一医院',
+              type:'line',
+              smooth:true,
+              itemStyle: {normal: {areaStyle: {type: 'default'}}},
+              data:[120, 122, 221, 524, 460, 530, 610]
+          },
+          {
+              name:'厦门中山医院',
+              type:'line',
+              smooth:true,
+              itemStyle: {normal: {areaStyle: {type: 'default'}}},
+              data:[130, 682, 534, 691, 490, 130, 110]
+          },
+          {
+              name:'厦门中医院',
+              type:'line',
+              smooth:true,
+              itemStyle: {normal: {areaStyle: {type: 'default'}}},
+              data:[320, 132, 161, 134, 112, 190, 120]
+          },
+          {
+              name:'厦门第五医院',
+              type:'line',
+              smooth:true,
+              itemStyle: {normal: {areaStyle: {type: 'default'}}},
+              data:[320, 132, 461, 34, 202, 93, 222]
+          }
+      ]
+
+    })
+</script>
+
+</body>
+</html>
