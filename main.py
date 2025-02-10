@@ -211,8 +211,12 @@ def video_feed():
 def index_view():
     return render_template('views/web_stone.html')
 
+@app.route('/')
+def hello_world():
+    return '欢迎使用微信云托管！'
 
 # http://127.0.0.1:5000/index
 if __name__ == '__main__':
     print('stone_v2_run:----------------------->')
-    app.run(host='0.0.0.0', port=6000, debug=True)
+    # app.run(host='0.0.0.0', port=6000, debug=True)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 80)))
