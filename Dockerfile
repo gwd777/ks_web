@@ -1,5 +1,6 @@
 FROM tiangolo/uwsgi-nginx-flask:python3.8.10
 
-WORKDIR /app
 
-COPY . /app
+COPY ./app /app
+
+# RUN pip install numpy
